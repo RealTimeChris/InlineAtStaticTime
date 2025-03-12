@@ -74,7 +74,25 @@ template<typename value_type_new> class alloc_wrapper {
 	}
 };
 
+#include <iostream>
+#include <utility>
+
+template<typename dispatcher_type> struct global_function_dispatcher {
+	template<typename... arg_types, size_t... indices> static void impl(size_t index, arg_types&&... args, std::index_sequence<indices...>) noexcept {
+		// Use a fold expression with a comma operator to ensure all terms are evaluated
+		((indices == index ? (dispatcher_type::impl(index, std::forward<arg_types>(args)...), false) : false), ...);
+	}
+};
+
+struct dispatcher_class {
+	static bool impl(size_t index) {
+		std::cout << "CURRENT INDEX: " << index << std::endl;
+		return true;
+	}
+};
+
 int main() {
+	global_function_dispatcher<dispatcher_class>::impl(2, std::make_index_sequence<4>{});
 	std::vector<int32_t, alloc_wrapper<int32_t>> test_vector{};
 	std::unordered_map<std::string, std::string> test_map{};
 	test_vector.resize(23);
