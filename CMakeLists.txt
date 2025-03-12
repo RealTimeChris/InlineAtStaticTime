@@ -32,9 +32,8 @@ target_link_options(
 
 add_subdirectory(CPU-Arch)
 
-
 target_link_libraries(
-	"BenchmarkExe" PUBLIC CPU-Arch
+	"BenchmarkExe" PUBLIC  oiml_cpu_arm oiml_cpu_avx_512 oiml_cpu_avx_2 oiml_cpu
 )
 
 if (WIN32)

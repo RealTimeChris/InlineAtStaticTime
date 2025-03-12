@@ -264,10 +264,8 @@ namespace oiml {
 
 	inline size_t get_cpu_arch_index(instruction_set set) {
 		if (static_cast<uint64_t>(set) & static_cast<uint64_t>(instruction_set::AVX512F)) {
-			return 3;
-		} else if (static_cast<uint64_t>(set) & static_cast<uint64_t>(instruction_set::AVX2)) {
 			return 2;
-		} else if (static_cast<uint64_t>(set) & static_cast<uint64_t>(instruction_set::SSE42)) {
+		} else if (static_cast<uint64_t>(set) & static_cast<uint64_t>(instruction_set::AVX2)) {
 			return 1;
 		} else if (static_cast<uint64_t>(set) & static_cast<uint64_t>(instruction_set::SVE)) {
 			return 2;
@@ -278,24 +276,6 @@ namespace oiml {
 		}
 	}
 
-	inline cpu_type get_cpu_arch_type(instruction_set set) {
-		if (static_cast<uint64_t>(set) & static_cast<uint64_t>(instruction_set::AVX512F)) {
-			return cpu_type::avx_512;
-		} else if (static_cast<uint64_t>(set) & static_cast<uint64_t>(instruction_set::AVX2)) {
-			return cpu_type::avx_2;
-		} else if (static_cast<uint64_t>(set) & static_cast<uint64_t>(instruction_set::SSE42)) {
-			return cpu_type::avx;
-		} else if (static_cast<uint64_t>(set) & static_cast<uint64_t>(instruction_set::SVE)) {
-			return cpu_type::arm_sve;
-		} else if (static_cast<uint64_t>(set) & static_cast<uint64_t>(instruction_set::NEON)) {
-			return cpu_type::arm_neon;
-		} else {
-			return cpu_type::x_86;
-		}
-	}
-
 	inline static const auto cpu_arch_index{ get_cpu_arch_index(cpu_arch) };
-
-	inline static const auto cpu_arch_type{ get_cpu_arch_type(cpu_arch) };
 
 }

@@ -1,18 +1,12 @@
 ﻿file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
-project(oiml_cpu)
-
-add_subdirectory(arm)
-add_subdirectory(avx_2)
-add_subdirectory(avx_512)
-
+project(oiml_cpu_avx_512)
 add_library(
-  "oiml_cpu" 
-  INTERFACE
+  "oiml_cpu_avx_512" 
+  STATIC
+  "avx_512.cpp" 
   "${HEADERS}"
 )
-set_target_properties(oiml_cpu PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
-add_library("oiml_cpu::oiml_cpu" ALIAS "oiml_cpu")
+set_target_properties(oiml_cpu_avx_512 PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi ${AVX_FLAGS}")
@@ -24,12 +18,14 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /DEBUG")
 endif()
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64|i[3-6]86")
+add_library("oiml_cpu_avx_512::oiml_cpu_avx_512" ALIAS "oiml_cpu_avx_512")
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64|i[3-6]86")  
     message(STATUS "Architecture: x86_64")
     set(OIML_COMPILE_OPTIONS     
-        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,gnu>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall;-Wno-narrowing>"
-        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,clang>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall;-Wno-narrowing>"
-        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,msvc>:/Wall;/W4;/Zi;/DNDBUG;/Zc:preprocessor;/permissive;/Zc:lambda;/bigobj;/Gy>"
+        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,gnu>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall;-Wno-narrowing;-mavx512f;-mfma;-mavx2;-mavx;-flto;-mf16c;-msse4.2>"
+        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,clang>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall;-Wno-narrowing;-mavx512f;-mfma;-mavx2;-mavx;-flto;-mf16c;-msse4.2>"
+        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,msvc>:/Wall;/W4;/Zi;/DNDBUG;/Zc:preprocessor;/permissive;/Zc:lambda;/bigobj;/Gy;/arch:AVX512;/arch:AVX2;/arch:AVX>"
     )
     set(OIML_LINK_OPTIONS 
         "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,gnu>:-flto;-Wl,-O2>"
@@ -39,9 +35,9 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64|i[3-6]86")
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM.*")  
     message(STATUS "Architecture: arm64")
     set(OIML_COMPILE_OPTIONS     
-        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,appleclang>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall;-Wno-narrowing>"
-        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,clang>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall;-Wno-narrowing>"
-        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,gnu>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall;-Wno-narrowing>"
+        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,appleclang>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall;-Wno-narrowing;-march=armv8.2-a+sve+sve2+simd>"
+        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,clang>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall;-Wno-narrowing;-march=armv8.2-a+sve+sve2+simd>"
+        "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,gnu>:-Wnull-dereference;-Wuninitialized;-Wconversion;-Wpedantic;-Wshadow;-Wextra;-Wall;-Wno-narrowing;-march=armv8.2-a+sve+sve2+simd>"
     )
     set(OIML_LINK_OPTIONS 
         "$<$<STREQUAL:$<LOWER_CASE:$<CXX_COMPILER_ID>>,gnu>:-flto;-Wl,-O2>"
@@ -53,19 +49,19 @@ else()
 endif()
 
 target_compile_options(
-    "oiml_cpu" INTERFACE
+    "oiml_cpu_avx_512" PRIVATE 
     "${OIML_COMPILE_OPTIONS}"
 )
 
-target_link_libraries("oiml_cpu" INTERFACE "oiml_cpu_arm" "oiml_cpu_avx_2" "oiml_cpu_avx_512")
-
 target_link_options(
-    "oiml_cpu" INTERFACE "${OIML_LINK_OPTIONS}"
+    "oiml_cpu_avx_512" PRIVATE 
+    "${OIML_LINK_OPTIONS}"
 )
 
 target_include_directories(
-    "oiml_cpu" INTERFACE 
+	"oiml_cpu_avx_512" PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../>"
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
     "$<INSTALL_INTERFACE:/include>"
 )
+

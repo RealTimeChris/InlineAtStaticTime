@@ -1,4 +1,4 @@
-﻿#include "cpu_arch.hpp"
+﻿#include "CPU-Arch/cpu_arch.hpp"
 #include <unordered_map>
 
 #if defined(OIML_MSVC) || defined(OIML_LINUX)
@@ -74,7 +74,23 @@ template<typename value_type_new> class alloc_wrapper {
 	}
 };
 
-int main() {
+#include <iostream>
+#include <utility>
+
+template<typename dispatcher_type> struct global_function_dispatcher {
+	template<typename... arg_types, size_t... indices> static void impl(size_t index, arg_types&&... args, std::index_sequence<indices...>) noexcept {
+		// Use a fold expression with a comma operator to ensure all terms are evaluated
+		((indices == index ? (dispatcher_type::impl(index, std::forward<arg_types>(args)...), false) : false), ...);
+	}
+};
+
+template<size_t index> struct test_struct {
+	template<typename... arg_types> static void impl(arg_types... args);
+};
+
+template<> template<typename... value_type> void test_struct<1>::impl(value_type... value) {};
+
+int32_t main() {
 	std::vector<int32_t, alloc_wrapper<int32_t>> test_vector{};
 	std::unordered_map<std::string, std::string> test_map{};
 	test_vector.resize(23);
